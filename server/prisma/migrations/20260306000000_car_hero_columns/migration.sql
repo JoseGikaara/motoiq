@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Car" ADD COLUMN IF NOT EXISTS "heroDisplayOrder" INTEGER;
+ALTER TABLE "Car" ADD COLUMN IF NOT EXISTS "heroOverlayText" TEXT;

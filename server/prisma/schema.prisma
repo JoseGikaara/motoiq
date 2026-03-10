@@ -1,0 +1,868 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  TEST_DRIVE
+  NEGOTIATION
+  CLOSED
+  LOST
+}
+
+enum TestDriveStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+enum SubscriptionPlan {
+  TRIAL
+  BASIC
+  PRO
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  SUSPENDED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  MPESA
+  BANK_TRANSFER
+  EQUITY
+}
+
+enum PaymentStatus {
+  PENDING
+  SUBMITTED
+  CONFIRMED
+  REJECTED
+}
+
+enum ApplicationStatus {
+  SUBMITTED
+  PAYMENT_PENDING
+  PAYMENT_SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  ACTIVE
+}
+
+enum InterestedDealerStatus {
+  NEW
+  CONTACTED
+  CONVERTED
+}
+
+enum TopUpStatus {
+  PENDING
+  SUBMITTED
+  CONFIRMED
+  REJECTED
+}
+
+enum DripChannel {
+  SMS
+  WHATSAPP
+  EMAIL
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+  STOPPED
+}
+
+enum BannerType {
+  ROTATING
+  FLASH_SALE
+  HEADLINE
+}
+
+enum BannerTarget {
+  NONE
+  INVENTORY
+  FINANCING
+  CONTACT
+  CUSTOM_URL
+}
+
+enum CarPhotoAngle {
+  FRONT
+  FRONT_LEFT
+  FRONT_RIGHT
+  REAR
+  REAR_LEFT
+  REAR_RIGHT
+  LEFT_SIDE
+  RIGHT_SIDE
+  INTERIOR_DASH
+  INTERIOR_SEATS
+  INTERIOR_BACKSEATS
+  INTERIOR_CARGO
+  INTERIOR_DETAILS
+  ENGINE
+  WHEELS
+  TRUNK
+  ROOF
+  UNDERNEATH
+  DETAIL_SHOT
+  OTHER
+}
+
+enum CarPhotoType {
+  STANDARD
+  HERO
+  THUMBNAIL
+  GALLERY
+  ANGLE_360
+}
+
+// --- Affiliate program enums ---
+enum AffiliateStatus {
+  ACTIVE
+  PAUSED
+  SUSPENDED
+}
+
+enum AffiliateTier {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+}
+
+enum AffiliateCommissionType {
+  PERCENTAGE
+  FIXED
+  HYBRID
+}
+
+enum AffiliatePayoutMethod {
+  MPESA
+  BANK_TRANSFER
+  PAYPAL
+  CASH
+}
+
+enum AffiliatePayoutStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum AffiliateLevel {
+  INDIVIDUAL
+  AGENCY
+  PARTNER
+}
+
+model Admin {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  password  String
+  name      String
+  createdAt DateTime  @default(now())
+  lastLogin DateTime?
+}
+
+model Dealer {
+  id             String        @id @default(cuid())
+  name           String
+  email          String        @unique
+  password       String
+  phone          String?
+  dealershipName String
+  logoUrl        String?
+  primaryColor   String?       @default("#2563EB")
+  tagline        String?
+  city           String?
+  website        String?
+  isActive       Boolean       @default(true)
+  notes          String?
+  createdAt      DateTime      @default(now())
+  cars           Car[]
+  leads          Lead[]
+  adCopies       AdCopy[]
+  tasks          Task[]
+  testDrives     TestDrive[]
+  subscription             Subscription?
+  activityLogs             ActivityLog[]
+  onboardingApplication   OnboardingApplication?
+  onboardingSteps         OnboardingStep[]
+  onboardingComplete      Boolean                  @default(false)
+  credits                 Int                      @default(0)
+  totalCreditsUsed        Int                      @default(0)
+  creditTopUpRequests     CreditTopUpRequest[]
+  communications          CommunicationLog[]
+  dripSequences           DripSequence[]
+  affiliates              Affiliate[]
+  monthlyTargetDeals     Int?
+  commissionRate         Decimal?   @db.Decimal(5, 4)  // e.g. 0.02 = 2%
+  currency               String?    @default("KES")
+  // Affiliate commission: 'percent' = payoutRate * dealValue on close; 'fixed' = KES per lead/test_drive/close
+  affiliateCommissionMode       String?   @default("percent")  // 'percent' | 'fixed'
+  affiliateCommissionPerLead    Int?      // KES per lead (fixed mode)
+  affiliateCommissionPerTestDrive Int?     // KES per test drive (fixed mode)
+  affiliateCommissionPerClose   Int?      // KES per closed deal (fixed mode)
+  // Multi-level affiliate: depth 1-3, level 2/3 rates (e.g. 0.01 = 1%)
+  affiliateMultiLevelDepth     Int?      @default(1)
+  affiliateLevel2Rate          Decimal?  @db.Decimal(5, 4)
+  affiliateLevel3Rate          Decimal?  @db.Decimal(5, 4)
+  // Public website (hosted dealer site)
+  websiteSlug            String?    @unique
+  websiteActive          Boolean    @default(false)
+  websiteExpiresAt       DateTime?
+  websiteTheme           String?    // classic | minimal | luxury
+  customDomain           String?    @unique
+  heroImage              String?
+  aboutText              String?
+  // Financing options for website calculator: [{ name, ratePct, termMonths?, termMin?, termMax?, minDepositPct?, notes? }]
+  financingOffers        Json?
+  enableDiscountMarquee  Boolean   @default(true)
+  enableVideoBackgrounds Boolean   @default(false)
+  banners               DealerBanner[]
+  affiliateCommissionRules AffiliateCommissionRule[]
+  affiliateLinks        AffiliateLink[]
+  affiliateMaterials   DealerAffiliateMaterial[]
+  affiliateChallenges   AffiliateChallenge[]
+  facebookPostGenerations FacebookPostGeneration[]
+}
+
+model DealerBanner {
+  id              String       @id @default(cuid())
+  dealerId        String
+  type            BannerType
+  title           String
+  description     String?
+  imageUrl        String?
+  ctaText         String?
+  ctaTarget       BannerTarget
+  ctaUrl          String?
+  startDate       DateTime
+  endDate         DateTime?
+  isActive        Boolean      @default(true)
+  displayOrder    Int          @default(0)
+  backgroundColor String?
+  textColor       String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  dealer          Dealer       @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+}
+
+model Subscription {
+  id         String             @id @default(cuid())
+  dealerId   String             @unique
+  plan       SubscriptionPlan   @default(TRIAL)
+  status     SubscriptionStatus @default(ACTIVE)
+  startDate  DateTime           @default(now())
+  endDate    DateTime?
+  amount     Int
+  notes      String?
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+  dealer     Dealer             @relation(fields: [dealerId], references: [id])
+}
+
+model ActivityLog {
+  id         String   @id @default(cuid())
+  dealerId   String?
+  action     String
+  detail     String?
+  ip         String?
+  creditsUsed Int?
+  creditsAfter Int?
+  createdAt  DateTime @default(now())
+  dealer     Dealer?  @relation(fields: [dealerId], references: [id])
+}
+
+model SystemSettings {
+  id                        String   @id
+  setupFeeStarter           Int      @default(70000)
+  setupFeeProfessional      Int      @default(70000)
+  setupFeeEnterprise        Int      @default(70000)
+  originalFeeStarter        Int      @default(90000)
+  originalFeeProfessional   Int      @default(90000)
+  originalFeeEnterprise     Int      @default(90000)
+  creditsStarter            Int      @default(100)
+  creditsProfessional       Int      @default(300)
+  creditsEnterprise         Int      @default(600)
+  creditTopUpOptions        String   @default("[{\"credits\":50,\"price\":5000},{\"credits\":150,\"price\":12000},{\"credits\":400,\"price\":25000}]")
+  creditCostAiScore         Int      @default(1)
+  creditCostFollowup        Int      @default(2)
+  creditCostAdCopy          Int      @default(3)
+  creditCostCarDescription Int      @default(2)
+  creditCostFacebookReplies Int     @default(1)
+  creditCostReport          Int      @default(5)
+  mpesaEnabled              Boolean  @default(true)
+  mpesaPaybill              String?  @default("522522")
+  mpesaTill                 String?
+  mpesaInstructions         String?  @default("Go to M-Pesa → Lipa na M-Pesa → Pay Bill")
+  bankEnabled               Boolean  @default(true)
+  bankName                  String?  @default("Equity Bank")
+  bankAccountName           String?  @default("MotorIQ Limited")
+  bankAccountNumber         String?  @default("1234567890")
+  bankBranch                String?  @default("Westlands, Nairobi")
+  bankSwiftCode             String?
+  bankInstructions          String?
+  equityEnabled             Boolean  @default(true)
+  equityNumber              String?  @default("0712 345 678")
+  equityInstructions        String?  @default("Equity Mobile: *247#")
+  customMethodEnabled       Boolean  @default(false)
+  customMethodName           String?
+  customMethodDetails       String?
+  customMethodInstructions  String?
+  updatedAt                 DateTime @updatedAt
+}
+
+model CreditTopUpRequest {
+  id              String        @id @default(cuid())
+  dealerId        String
+  packageCredits  Int
+  packagePrice    Int
+  paymentMethod   PaymentMethod
+  paymentRef      String?
+  paymentProof    String?
+  status          TopUpStatus   @default(PENDING)
+  adminNotes      String?
+  createdAt       DateTime      @default(now())
+  dealer          Dealer        @relation(fields: [dealerId], references: [id])
+}
+
+model OnboardingApplication {
+  id               String             @id @default(cuid())
+  fullName         String
+  email            String             @unique
+  phone            String
+  dealershipName   String
+  city             String
+  stockSize        String
+  monthlyLeads     String
+  currentProcess   String
+  socialMedia      String?
+  website          String?
+  selectedPlan     SubscriptionPlan   @default(PRO)
+  paymentMethod    PaymentMethod      @default(MPESA)
+  paymentStatus    PaymentStatus      @default(PENDING)
+  paymentRef       String?
+  paymentAmount    Int
+  paymentProof     String?
+  paymentDate      DateTime?
+  status           ApplicationStatus  @default(SUBMITTED)
+  adminNotes       String?
+  rejectionReason  String?
+  dealerId         String?            @unique
+  dealer           Dealer?            @relation(fields: [dealerId], references: [id])
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+}
+
+model InterestedDealer {
+  id             String                 @id @default(cuid())
+  name           String
+  dealershipName String
+  email          String
+  phone          String
+  city           String
+  inventorySize  Int?
+  status         InterestedDealerStatus @default(NEW)
+  createdAt      DateTime               @default(now())
+
+  @@index([status, createdAt])
+}
+
+model OnboardingStep {
+  id          String    @id @default(cuid())
+  dealerId    String
+  step        String
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+  dealer      Dealer    @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+}
+
+model Car {
+  id         String       @id @default(cuid())
+  dealerId   String
+  dealer     Dealer       @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+  make       String
+  model      String
+  year       Int
+  price      Float
+  mileage    Int?
+  color      String?
+  specs      String?      // JSON string for extra specs
+  description String?     @db.Text  // AI-generated or manual listing description for website
+  photos     String[]     // legacy: array of URLs (use photoGallery when set)
+  photoGallery Json?      // [{ url, angle?, order? }] — multi-angle gallery; first = hero
+  isFeaturedInTopMarquee   Boolean  @default(false)
+  isFeaturedInCinematicHero Boolean @default(false)
+  heroDisplayOrder          Int?     // 1-10 for hero carousel order
+  heroOverlayText           String?  // optional override for hero overlay
+  discountPercentage       Int?     // e.g. 12 for 12% OFF
+  saleEndDate              DateTime?
+  videoUrl                 String?  // looped MP4/WebM for marquee/hero background
+  videoThumbnailUrl        String?  // poster frame fallback
+  isVideoBackground        Boolean  @default(false) // use video in marquees when dealer has video backgrounds enabled
+  status     String       @default("active") // active, sold, etc.
+  createdAt  DateTime     @default(now())
+  leads      Lead[]
+  adCopies   AdCopy[]
+  testDrives TestDrive[]
+  carPhotos  CarPhoto[]
+  affiliateLinks AffiliateLink[]
+  buyerReferrals BuyerReferral[]
+  shareClicks    CarShareClick[]
+  facebookPostGenerations FacebookPostGeneration[]
+}
+
+model FacebookPostGeneration {
+  id        String   @id @default(cuid())
+  dealerId  String
+  carId     String
+  createdAt DateTime @default(now())
+  dealer    Dealer   @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+  car       Car      @relation(fields: [carId], references: [id], onDelete: Cascade)
+  @@index([dealerId])
+  @@index([carId])
+}
+
+model CarPhoto {
+  id           String        @id @default(cuid())
+  carId        String
+  url          String
+  optimizedUrl String?
+  thumbnailUrl String?
+  blurHash     String?
+  angle        CarPhotoAngle @default(OTHER)
+  photoType    CarPhotoType  @default(GALLERY)
+  displayOrder Int           @default(0)
+  isPrimary    Boolean       @default(false)
+  title        String?
+  description  String?
+  width        Int?
+  height       Int?
+  fileSize     Int?
+  mimeType     String?
+  metadata     Json?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  car          Car           @relation(fields: [carId], references: [id], onDelete: Cascade)
+
+  @@index([carId, angle])
+  @@index([carId, isPrimary])
+}
+
+model Lead {
+  id               String          @id @default(cuid())
+  carId            String
+  car              Car             @relation(fields: [carId], references: [id], onDelete: Cascade)
+  dealerId         String
+  dealer           Dealer          @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+  affiliateId      String?
+  affiliate        Affiliate?      @relation(fields: [affiliateId], references: [id])
+  buyerReferralId  String?
+  buyerReferral    BuyerReferral?  @relation(fields: [buyerReferralId], references: [id])
+  name             String
+  phone            String
+  email            String
+  budget           String?
+  financing        String?    // cash / financing
+  timeframe        String?    // when ready to buy
+  tradeIn          String?    // yes / no
+  source           String?    // facebook, instagram, whatsapp, direct
+  score            String?    // hot / warm / cold
+  scoreReason      String?
+  urgency          Int?       // 1-10
+  status          LeadStatus @default(NEW)
+  notes            String?
+  dealValue        Decimal?   @db.Decimal(12, 2)  // set when CLOSED
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  followUps        FollowUp[]
+  tasks            Task[]
+  testDrives       TestDrive[]
+  communications   CommunicationLog[]
+  dripEnrollments  LeadDripEnrollment[]
+  referralEvents   ReferralEvent[]
+}
+
+model BuyerReferral {
+  id             String   @id @default(cuid())
+  refCode        String   @unique
+  carId          String
+  car            Car      @relation(fields: [carId], references: [id], onDelete: Cascade)
+  leadsGenerated Int      @default(0)
+  createdAt      DateTime @default(now())
+  leads          Lead[]
+  @@index([carId])
+  @@index([refCode])
+}
+
+model CarShareClick {
+  id         String   @id @default(cuid())
+  carId      String
+  car        Car      @relation(fields: [carId], references: [id], onDelete: Cascade)
+  referrer   String?
+  deviceType String?
+  createdAt  DateTime @default(now())
+  @@index([carId])
+  @@index([createdAt])
+}
+
+model Affiliate {
+  id           String          @id @default(cuid())
+  dealerId     String
+  dealer       Dealer          @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+  name         String
+  email        String?
+  phone        String?
+  referralCode String          @unique
+  trackingUrl  String?
+  status       AffiliateStatus @default(ACTIVE)
+  level        AffiliateLevel  @default(INDIVIDUAL)
+  tier         AffiliateTier  @default(BRONZE)
+
+  // Commission (affiliate-level; dealer-level fixed amounts still in Dealer)
+  commissionType        AffiliateCommissionType @default(PERCENTAGE)
+  commissionRate        Decimal?                @db.Decimal(10, 4) // e.g. 0.05 = 5%
+  fixedLeadAmount       Decimal?                @db.Decimal(10, 2)
+  fixedTestDriveAmount  Decimal?                @db.Decimal(10, 2)
+  fixedCloseAmount      Decimal?                @db.Decimal(10, 2)
+  hybridBaseRate        Decimal?                @db.Decimal(10, 4)
+  hybridFixedAmount     Decimal?                @db.Decimal(10, 2)
+  // Legacy: payoutRate still used when commissionType is PERCENTAGE
+  payoutRate            Decimal?                @db.Decimal(10, 4)
+
+  tierMultiplier        Decimal?  @default(1) @db.Decimal(5, 2)
+  priorityLeads         Boolean   @default(false)
+  featuredPartner       Boolean   @default(false)
+
+  totalEarned           Decimal   @default(0) @db.Decimal(12, 2)
+  totalPaid             Decimal   @default(0) @db.Decimal(12, 2)
+  lastPayoutAt          DateTime?
+  lifetimeLeads         Int       @default(0)
+  lifetimeTestDrives   Int       @default(0)
+  lifetimeClosedDeals  Int       @default(0)
+  conversionRate        Decimal?  @db.Decimal(5, 2)
+
+  payoutMethod          AffiliatePayoutMethod?
+  payoutDetails         Json?
+  minimumPayout         Decimal   @default(1000) @db.Decimal(10, 2)
+  autoPayoutThreshold   Decimal?  @db.Decimal(10, 2)
+
+  uniqueQrCode          String?
+  promoVideo            String?
+  promoImages           String[]
+
+  utmSource            String?
+  utmMedium            String?
+  utmCampaign          String?
+
+  invitedAt             DateTime?
+  joinedAt              DateTime  @default(now())
+  invitedBy             String?
+  welcomeEmailSent      Boolean   @default(false)
+  welcomeSmsSent        Boolean   @default(false)
+  onboardingCompleted   Boolean   @default(false)
+
+  allowedCarIds         String[]
+  excludedCarIds        String[]
+  maxCars               Int?
+
+  notes                 String?   @db.Text
+  tags                  String[]
+  customFields          Json?
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  leads         Lead[]
+  events        ReferralEvent[]
+  payouts       AffiliatePayout[]
+  links         AffiliateLink[]
+  performance   AffiliatePerformance[]
+  challengeProgress AffiliateChallengeProgress[]
+  children      Affiliate[]  @relation("AffiliateReferral")
+  parent        Affiliate?   @relation("AffiliateReferral", fields: [invitedBy], references: [id])
+
+  @@index([dealerId, referralCode])
+  @@index([dealerId, status])
+  @@index([invitedBy])
+}
+
+model AffiliatePayout {
+  id          String               @id @default(cuid())
+  affiliateId String
+  amount      Decimal              @db.Decimal(12, 2)
+  method      AffiliatePayoutMethod
+  status      AffiliatePayoutStatus @default(PENDING)
+  reference   String?
+  periodStart DateTime
+  periodEnd   DateTime
+  paidAt      DateTime?
+  notes       String?              @db.Text
+  metadata    Json?
+
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+
+  @@index([affiliateId, status])
+  @@index([status, paidAt])
+}
+
+model AffiliateLink {
+  id              String    @id @default(cuid())
+  affiliateId     String
+  dealerId        String
+  carId           String?
+  customSlug      String?
+  url             String    @db.Text
+  shortCode       String    @unique
+  clicks          Int       @default(0)
+  uniqueClicks    Int       @default(0)
+  leadsGenerated  Int       @default(0)
+  testDrivesBooked Int      @default(0)
+  dealsClosed     Int       @default(0)
+  lastClickedAt   DateTime?
+  expiresAt       DateTime?
+  utmParams       Json?
+  isActive        Boolean   @default(true)
+
+  affiliate  Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  dealer     Dealer    @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+  car        Car?      @relation(fields: [carId], references: [id], onDelete: SetNull)
+
+  @@unique([dealerId, shortCode])
+  @@index([affiliateId, isActive])
+}
+
+model AffiliateCommissionRule {
+  id               String    @id @default(cuid())
+  dealerId         String
+  name             String
+  description      String?   @db.Text
+  appliesToAllCars  Boolean   @default(true)
+  carIds           String[]
+  carConditions    Json?
+
+  commissionType   AffiliateCommissionType
+  rate             Decimal?  @db.Decimal(10, 4)
+  fixedAmount      Decimal?  @db.Decimal(10, 2)
+  hybridRate       Decimal?  @db.Decimal(10, 4)
+  hybridFixed      Decimal?  @db.Decimal(10, 2)
+
+  startDate        DateTime?
+  endDate          DateTime?
+  minAffiliateTier AffiliateTier?
+  maxUses          Int?
+  currentUses      Int       @default(0)
+  isActive         Boolean   @default(true)
+  priority         Int       @default(0)
+
+  dealer Dealer @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+
+  @@index([dealerId, isActive])
+}
+
+model AffiliatePerformance {
+  id              String    @id @default(cuid())
+  affiliateId      String
+  performanceDate DateTime  @db.Date
+
+  leads           Int       @default(0)
+  testDrives      Int       @default(0)
+  closedDeals     Int       @default(0)
+  revenue         Decimal   @default(0) @db.Decimal(12, 2)
+  commission      Decimal   @default(0) @db.Decimal(12, 2)
+  linkClicks      Int       @default(0)
+  uniqueVisitors  Int       @default(0)
+  avgTimeOnSite   Int?
+  bounceRate      Decimal?  @db.Decimal(5, 2)
+
+  affiliate Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+
+  @@unique([affiliateId, performanceDate])
+  @@index([affiliateId, performanceDate])
+}
+
+model DealerAffiliateMaterial {
+  id           String   @id @default(cuid())
+  dealerId     String
+  name         String
+  type         String   // 'social_kit' | 'email_template' | 'print' | 'video' | 'other'
+  url          String   @db.Text
+  displayOrder Int      @default(0)
+  dealer       Dealer   @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+  @@index([dealerId])
+}
+
+enum AffiliateChallengeTarget {
+  LEADS
+  TEST_DRIVES
+  CLOSED_DEALS
+  REVENUE
+}
+
+model AffiliateChallenge {
+  id               String                   @id @default(cuid())
+  dealerId         String
+  name             String
+  description      String?                  @db.Text
+  targetType       AffiliateChallengeTarget
+  targetValue      Int                      // e.g. 5 leads, 10 test drives
+  rewardDescription String?                 @db.Text
+  startDate        DateTime
+  endDate          DateTime
+  isActive         Boolean                  @default(true)
+  dealer           Dealer                   @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+  progress         AffiliateChallengeProgress[]
+  @@index([dealerId, isActive])
+}
+
+model AffiliateChallengeProgress {
+  id          String             @id @default(cuid())
+  affiliateId String
+  challengeId String
+  currentValue Int               @default(0)
+  completedAt DateTime?
+  affiliate   Affiliate          @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  challenge   AffiliateChallenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  @@unique([affiliateId, challengeId])
+  @@index([affiliateId])
+  @@index([challengeId])
+}
+
+model ReferralEvent {
+  id           String     @id @default(cuid())
+  affiliateId  String
+  affiliate    Affiliate  @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  leadId       String?
+  lead         Lead?      @relation(fields: [leadId], references: [id])
+  testDriveId  String?
+  testDrive    TestDrive? @relation(fields: [testDriveId], references: [id])
+  eventType    String     // 'lead' | 'test_drive' | 'closed'
+  value        Decimal?   @db.Decimal(12, 2) // commission value for closed events
+  dealClosedAt DateTime?
+  createdAt    DateTime   @default(now())
+
+  @@index([affiliateId, eventType, createdAt])
+}
+
+model Task {
+  id        String   @id @default(cuid())
+  dealerId  String
+  leadId    String
+  message   String
+  priority  String?  // HIGH | NORMAL
+  done      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  dealer    Dealer   @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  @@unique([leadId, dealerId])
+}
+
+model TestDrive {
+  id        String           @id @default(cuid())
+  leadId    String
+  carId     String
+  dealerId  String
+  date      DateTime
+  timeSlot  String
+  notes     String?
+  status    TestDriveStatus  @default(PENDING)
+  createdAt DateTime         @default(now())
+  lead      Lead             @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  car       Car              @relation(fields: [carId], references: [id], onDelete: Cascade)
+  dealer    Dealer           @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+  referralEvents ReferralEvent[]
+}
+
+model FollowUp {
+  id        String   @id @default(cuid())
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  day       Int      // 1, 3, 7
+  message   String
+  sent      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  @@unique([leadId, day])
+}
+
+model AdCopy {
+  id          String   @id @default(cuid())
+  carId       String
+  car         Car      @relation(fields: [carId], references: [id], onDelete: Cascade)
+  dealerId    String
+  dealer      Dealer   @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+  headlines   String[]
+  descriptions String[]
+  captions    String[]
+  targetAudience String?
+  location    String?
+  createdAt   DateTime @default(now())
+}
+
+model CommunicationLog {
+  id         String   @id @default(cuid())
+  leadId     String
+  dealerId   String
+  channel    String   // WHATSAPP, SMS, EMAIL, NOTE, STATUS_CHANGE
+  direction  String   // OUTBOUND or INBOUND
+  content    String   // full message or note
+  snippet    String?  // short preview for timeline
+  status     String?  // SENT, FAILED, etc.
+  meta       String?  // optional JSON for extra context
+  createdAt  DateTime @default(now())
+  lead       Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  dealer     Dealer   @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+}
+
+model DripSequence {
+  id          String   @id @default(cuid())
+  dealerId    String
+  dealer      Dealer   @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  steps       DripStep[]
+  enrollments LeadDripEnrollment[]
+}
+
+model DripStep {
+  id               String       @id @default(cuid())
+  sequenceId       String
+  sequence         DripSequence @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+  order            Int          // 1, 2, 3...
+  triggerAfterDays Int          // days after enrollment (or after previous step)
+  channel          DripChannel
+  templateText     String       // placeholders: {leadName}, {carModel}, {price}, {lastInteraction}
+  useAI            Boolean      @default(false)
+}
+
+model LeadDripEnrollment {
+  id          String           @id @default(cuid())
+  leadId      String
+  lead        Lead             @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  sequenceId  String
+  sequence    DripSequence     @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+  currentStep Int              @default(1)  // 1-based step index
+  startedAt   DateTime         @default(now())
+  lastSentAt  DateTime?        // when current step was sent (null until first send)
+  status      EnrollmentStatus  @default(ACTIVE)
+}

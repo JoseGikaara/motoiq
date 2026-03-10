@@ -1,0 +1,67 @@
+-- Run this ONCE after you have created the schema (via Prisma migrations or by running migration SQL files).
+-- Ensures the single SystemSettings row (id = 'singleton') exists so the app can read credit costs, etc.
+--
+-- If your schema has creditCostCarDescription and creditCostFacebookReplies (e.g. after prisma db push),
+-- add them to the column list and values: "creditCostCarDescription", 2, "creditCostFacebookReplies", 1
+
+INSERT INTO "SystemSettings" (
+  "id",
+  "setupFeeStarter",
+  "setupFeeProfessional",
+  "setupFeeEnterprise",
+  "originalFeeStarter",
+  "originalFeeProfessional",
+  "originalFeeEnterprise",
+  "creditsStarter",
+  "creditsProfessional",
+  "creditsEnterprise",
+  "creditTopUpOptions",
+  "creditCostAiScore",
+  "creditCostFollowup",
+  "creditCostAdCopy",
+  "creditCostReport",
+  "mpesaEnabled",
+  "mpesaPaybill",
+  "mpesaInstructions",
+  "bankEnabled",
+  "bankName",
+  "bankAccountName",
+  "bankAccountNumber",
+  "bankBranch",
+  "equityEnabled",
+  "equityNumber",
+  "equityInstructions",
+  "customMethodEnabled",
+  "updatedAt"
+) VALUES (
+  'singleton',
+  70000,
+  70000,
+  70000,
+  90000,
+  90000,
+  90000,
+  100,
+  300,
+  600,
+  '[{"credits":50,"price":5000},{"credits":150,"price":12000},{"credits":400,"price":25000}]',
+  1,
+  2,
+  3,
+  5,
+  true,
+  '522522',
+  'Go to M-Pesa → Lipa na M-Pesa → Pay Bill',
+  true,
+  'Equity Bank',
+  'MotorIQ Limited',
+  '1234567890',
+  'Westlands, Nairobi',
+  true,
+  '0712 345 678',
+  'Equity Mobile: *247#',
+  false,
+  NOW()
+)
+ON CONFLICT ("id") DO UPDATE SET
+  "updatedAt" = NOW();
