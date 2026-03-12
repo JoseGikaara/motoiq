@@ -26,6 +26,7 @@ export const cars = {
   list: () => api("/api/cars"),
   get: (id) => api(`/api/cars/${id}`),
   getPublic: (id) => api(`/api/cars/public/${id}`),
+  getPost: (id) => api(`/api/cars/${id}/post`),
   create: (body) => api("/api/cars", { method: "POST", body: JSON.stringify(body) }),
   update: (id, body) => api(`/api/cars/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
   delete: (id) => api(`/api/cars/${id}`, { method: "DELETE" }),

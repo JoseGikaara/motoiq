@@ -21,6 +21,7 @@ import adminRouter from "./routes/admin/index.js";
 import { affiliatesRouter } from "./routes/affiliates.js";
 import { uploadRouter } from "./routes/upload.js";
 import { bannersRouter } from "./routes/banners.js";
+import { postsRouter } from "./routes/posts.js";
 import { startTasksCron } from "./cron/tasks.js";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -94,6 +95,7 @@ app.use("/api/admin", adminRouter);
 app.use("/api/affiliates", affiliatesRouter);
 app.use("/api/upload", uploadRouter);
 app.use("/api/banners", bannersRouter);
+app.use("/api/posts", postsRouter);
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 

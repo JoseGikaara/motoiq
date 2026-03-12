@@ -429,6 +429,7 @@ model Car {
   buyerReferrals BuyerReferral[]
   shareClicks    CarShareClick[]
   facebookPostGenerations FacebookPostGeneration[]
+  generatedPosts GeneratedPost[]
 }
 
 model FacebookPostGeneration {
@@ -439,6 +440,15 @@ model FacebookPostGeneration {
   dealer    Dealer   @relation(fields: [dealerId], references: [id], onDelete: Cascade)
   car       Car      @relation(fields: [carId], references: [id], onDelete: Cascade)
   @@index([dealerId])
+  @@index([carId])
+}
+
+model GeneratedPost {
+  id        String   @id @default(cuid())
+  carId     String
+  text      String
+  createdAt DateTime @default(now())
+  car       Car      @relation(fields: [carId], references: [id], onDelete: Cascade)
   @@index([carId])
 }
 

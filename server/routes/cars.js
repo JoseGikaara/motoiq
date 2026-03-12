@@ -46,6 +46,87 @@ function normalizePhotoGallery(gallery) {
   })).filter((item) => item.url);
 }
 
+carsRouter.get("/:id/post", async (req, res) => {
+  try {
+    const car = await prisma.car.findFirst({
+      where: { id: req.params.id, dealerId: req.dealer.id },
+      include: {
+        dealer: {
+          select: {
+            dealershipName: true,
+            phone: true,
+            city: true,
+          },
+        },
+      },
+    });
+    if (!car) return res.status(404).json({ error: "Car not found" });
+
+    const lines = [];
+    const title = `${(car.make || "").toUpperCase()} ${(car.model || "").toUpperCase()}`.trim();
+    if (title) lines.push(title);
+    lines.push("");
+    lines.push(`Year: ${car.year}`);
+    if (car.mileage != null) {
+      const mileageStr = `${car.mileage.toLocaleString()} km`;
+      lines.push(`Mileage: ${mileageStr}`);
+    }
+
+    let fuelType = "";
+    let transmission = "";
+    if (car.specs) {
+      try {
+        const specs = JSON.parse(car.specs);
+        fuelType = specs?.fuelType || "";
+        transmission = specs?.transmission || "";
+      } catch {
+        // ignore
+      }
+    }
+    if (fuelType) lines.push(`Fuel: ${fuelType}`);
+    if (transmission) lines.push(`Transmission: ${transmission}`);
+
+    lines.push("");
+    lines.push(`Price: KES ${Math.round(car.price || 0).toLocaleString()}`);
+    lines.push("");
+
+    if (car.description) {
+      const desc = String(car.description).split("\n").slice(0, 3).join("\n").trim();
+      if (desc) {
+        lines.push(desc);
+        lines.push("");
+      }
+    } else {
+      lines.push("Clean unit");
+      lines.push("Ready for viewing");
+      lines.push("");
+    }
+
+    const location = car.dealer?.city || "Nairobi";
+    const dealerPhone = car.dealer?.phone || "";
+    lines.push(`📍 Location: ${location}`);
+    if (dealerPhone) {
+      lines.push(`📞 WhatsApp: ${dealerPhone}`);
+    }
+
+    const postText = lines.join("\n");
+
+    await prisma.generatedPost.create({
+      data: {
+        carId: car.id,
+        text: postText,
+      },
+    });
+
+    const photoUrls = Array.isArray(car.photos) ? car.photos : [];
+
+    res.json({ postText, images: photoUrls });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Failed to generate post" });
+  }
+});
+
 carsRouter.post("/", async (req, res) => {
   try {
     const { make, model, year, price, mileage, color, specs, description, photos, photoGallery, status, isFeaturedInTopMarquee, isFeaturedInCinematicHero, heroDisplayOrder, heroOverlayText, discountPercentage, saleEndDate, videoUrl, videoThumbnailUrl, isVideoBackground } = req.body;

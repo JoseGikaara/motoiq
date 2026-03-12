@@ -28,6 +28,10 @@ export default function CarLanding() {
   const [testDriveLoading, setTestDriveLoading] = useState(false);
   const [testDriveForm, setTestDriveForm] = useState({ date: "", timeSlot: "", notes: "", name: "", phone: "" });
   const [captchaReady, setCaptchaReady] = useState(false);
+  const [postModalOpen, setPostModalOpen] = useState(false);
+  const [postLoading, setPostLoading] = useState(false);
+  const [generatedPost, setGeneratedPost] = useState("");
+  const [postImages, setPostImages] = useState([]);
 
   useEffect(() => {
     const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
@@ -166,6 +170,36 @@ export default function CarLanding() {
     }
   }
 
+  async function handleGeneratePost() {
+    if (!car?.id) return;
+    setPostModalOpen(true);
+    setPostLoading(true);
+    try {
+      const data = await cars.getPost(car.id);
+      setGeneratedPost(data.postText || "");
+      setPostImages(Array.isArray(data.images) ? data.images : []);
+    } catch (err) {
+      toast.error(err.message || "Failed to generate post");
+      setPostModalOpen(false);
+    } finally {
+      setPostLoading(false);
+    }
+  }
+
+  function copyPostToClipboard() {
+    if (!generatedPost) return;
+    navigator.clipboard.writeText(generatedPost).then(
+      () => toast.success("Post copied"),
+      () => toast.error("Could not copy"),
+    );
+  }
+
+  function sharePostToWhatsApp() {
+    if (!generatedPost) return;
+    const url = `https://wa.me/?text=${encodeURIComponent(generatedPost)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+
   return (
     <div className="min-h-screen bg-navy">
       <header className="border-b border-white/10 py-4">
@@ -211,6 +245,13 @@ export default function CarLanding() {
               </button>
               <button type="button" onClick={copyBuyerRefLink} className="px-3 py-1.5 rounded-lg border border-green-500/40 text-green-400 text-sm hover:bg-green-500/10 flex items-center gap-1.5">
                 Share & refer friends
+              </button>
+              <button
+                type="button"
+                onClick={handleGeneratePost}
+                className="px-3 py-1.5 rounded-lg border border-accent-blue/60 text-accent-blue text-sm hover:bg-accent-blue/10 flex items-center gap-1.5"
+              >
+                Generate Sales Post
               </button>
             </div>
             <CarSpecsTable car={car} specsString={car.specs} />
@@ -312,6 +353,74 @@ export default function CarLanding() {
           </div>
         </div>
       </div>
+      {postModalOpen && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 px-4">
+          <div className="w-full max-w-lg rounded-2xl bg-slate-950 border border-slate-800 p-6 space-y-4">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h2 className="font-heading font-semibold text-lg text-white">Sales post for this car</h2>
+                <p className="text-xs text-slate-400">
+                  Copy, download images, or share directly to WhatsApp.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPostModalOpen(false)}
+                className="text-slate-400 hover:text-white text-sm"
+              >
+                ×
+              </button>
+            </div>
+            {postLoading ? (
+              <div className="py-8 text-center text-slate-400 text-sm">Generating post…</div>
+            ) : (
+              <>
+                <textarea
+                  value={generatedPost}
+                  readOnly
+                  rows={8}
+                  className="w-full px-3 py-2.5 rounded-lg bg-slate-900 border border-slate-700 text-white text-sm resize-none"
+                />
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={copyPostToClipboard}
+                    className="inline-flex items-center justify-center px-3 py-2 rounded-lg bg-slate-800 text-white text-xs font-medium hover:bg-slate-700"
+                  >
+                    Copy post
+                  </button>
+                  <button
+                    type="button"
+                    onClick={sharePostToWhatsApp}
+                    className="inline-flex items-center justify-center px-3 py-2 rounded-lg bg-green-600 text-white text-xs font-medium hover:bg-green-500"
+                  >
+                    Share to WhatsApp
+                  </button>
+                </div>
+                {postImages.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs text-slate-400">Images</p>
+                    <div className="flex flex-wrap gap-2">
+                      {postImages.slice(0, 4).map((url) => (
+                        <a
+                          key={url}
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          download
+                          className="block w-20 h-20 rounded-lg overflow-hidden border border-slate-700 bg-slate-900"
+                        >
+                          <img src={url} alt="" className="w-full h-full object-cover" />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -41,6 +41,7 @@ import FrontDoor from "./pages/FrontDoor";
 import DemoEntry from "./pages/DemoEntry";
 import Affiliates from "./pages/Affiliates";
 import AffiliateDashboard from "./pages/AffiliateDashboard";
+import Posts from "./pages/Posts";
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -126,6 +127,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Layout><Ads /></Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/posts"
+        element={
+          <ProtectedRoute>
+            <Layout><Posts /></Layout>
           </ProtectedRoute>
         }
       />
