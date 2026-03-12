@@ -111,6 +111,10 @@ export const leads = {
     api(`/api/leads/${id}/send-sms`, { method: "POST", body: JSON.stringify(body) }),
 };
 
+export const posts = {
+  list: () => api("/api/posts"),
+};
+
 export const dripSequences = {
   list: () => api("/api/drip-sequences"),
   active: () => api("/api/drip-sequences/active"),
