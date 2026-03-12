@@ -98,6 +98,14 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/dashboard/leads"
+        element={
+          <ProtectedRoute>
+            <Layout><Leads /></Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/tasks"
         element={
           <ProtectedRoute>

@@ -33,6 +33,7 @@ export default function WebsiteCar() {
   const { slug, carSlug } = useParams();
   const [searchParams] = useSearchParams();
   const refCode = searchParams.get("ref") || undefined;
+  const sourceFromUrl = searchParams.get("source") || undefined;
   const carId = parseCarIdFromSlug(carSlug);
   const [dealer, setDealer] = useState(null);
   const [car, setCar] = useState(null);
@@ -40,6 +41,7 @@ export default function WebsiteCar() {
   const [resolvedSlug, setResolvedSlug] = useState(null);
   const [slide, setSlide] = useState(0);
   const [testDriveOpen, setTestDriveOpen] = useState(false);
+  const [inquiryOpen, setInquiryOpen] = useState(false);
   const heroRef = useRef(null);
   const footerRef = useRef(null);
   const stickyVisible = useStickyBar({ showAfterRef: heroRef, hideBeforeRef: footerRef });
@@ -53,6 +55,7 @@ export default function WebsiteCar() {
     financing: "cash",
     timeframe: "",
     tradeIn: "no",
+    message: "",
   });
   const [leadSubmitting, setLeadSubmitting] = useState(false);
   const [leadSubmitted, setLeadSubmitted] = useState(false);
@@ -153,12 +156,49 @@ export default function WebsiteCar() {
         financing: leadForm.financing,
         timeframe: leadForm.timeframe || null,
         tradeIn: leadForm.tradeIn,
-        source: `website_car_${slug}`,
+        source: sourceFromUrl || `website_car_${slug}`,
         captchaToken,
         refCode,
       });
       setLeadSubmitted(true);
       toast.success("Thank you — we'll be in touch soon.");
+    } catch (err) {
+      toast.error(err.message || "Something went wrong");
+    } finally {
+      setLeadSubmitting(false);
+    }
+  }
+
+  async function submitInquiry(e) {
+    e.preventDefault();
+    if (!car?.id) return;
+    setLeadSubmitting(true);
+    try {
+      const captchaToken = await getCaptchaToken("website_car_inquiry");
+      await leadsApi.create({
+        carId: car.id,
+        name: leadForm.name,
+        phone: leadForm.phone,
+        email: leadForm.email || "lead@motoriq.ke",
+        budget: null,
+        financing: null,
+        timeframe: null,
+        tradeIn: null,
+        source: sourceFromUrl || `website_car_${slug}`,
+        captchaToken,
+        refCode,
+        message: leadForm.message || undefined,
+      });
+      setLeadSubmitted(true);
+      setInquiryOpen(false);
+      const interestText = `I'm interested in the ${car.year} ${car.make} ${car.model}`;
+      const redirectUrl = waNumber
+        ? `https://wa.me/${waNumber}?text=${encodeURIComponent(interestText)}`
+        : whatsapp;
+      if (redirectUrl) {
+        window.open(redirectUrl, "_blank", "noopener,noreferrer");
+      }
+      toast.success("Inquiry sent! We’ve opened WhatsApp so you can chat directly.");
     } catch (err) {
       toast.error(err.message || "Something went wrong");
     } finally {
@@ -342,7 +382,30 @@ export default function WebsiteCar() {
               </div>
             ) : (
               <>
-                <h2 className="font-heading font-semibold text-lg mb-2">Request details</h2>
+                <h2 className="font-heading font-semibold text-lg mb-2">Check availability</h2>
+                <p className="text-xs text-gray-400 mb-3">
+                  Send a quick inquiry and we’ll confirm availability and next steps on WhatsApp.
+                </p>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <button
+                    type="button"
+                    onClick={() => setInquiryOpen(true)}
+                    className="inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-accent-blue text-white text-sm font-medium hover:bg-accent-blue/90"
+                  >
+                    Check availability
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setInquiryOpen(true)}
+                    className="inline-flex items-center justify-center px-4 py-2.5 rounded-lg border border-white/15 text-sm font-medium text-white hover:bg-white/5"
+                  >
+                    Reserve this car
+                  </button>
+                </div>
+                <h3 className="font-heading font-semibold text-sm mb-1">Full lead form</h3>
+                <p className="text-xs text-gray-500 mb-2">
+                  Prefer to share a few more details? Fill this form and the dealer will get in touch.
+                </p>
                 <form onSubmit={submitLead} className="space-y-3 text-sm">
                   <input
                     type="text"
@@ -594,6 +657,60 @@ export default function WebsiteCar() {
         )}
         <div ref={footerRef} />
       </main>
+
+      {inquiryOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <div className="w-full max-w-md rounded-2xl bg-slate-950 border border-slate-800 p-6 space-y-4">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h2 className="font-heading font-semibold text-lg text-white">Send inquiry</h2>
+                <p className="text-xs text-slate-400">
+                  We’ll save your details as a lead and open WhatsApp so you can chat with {dealer.dealershipName}.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setInquiryOpen(false)}
+                className="text-slate-400 hover:text-white text-sm"
+              >
+                ×
+              </button>
+            </div>
+            <form onSubmit={submitInquiry} className="space-y-3 text-sm">
+              <input
+                type="text"
+                placeholder="Full name"
+                value={leadForm.name}
+                onChange={(e) => setLeadForm((f) => ({ ...f, name: e.target.value }))}
+                required
+                className="w-full px-3 py-2.5 rounded-lg bg-slate-900 border border-slate-700 text-white placeholder-slate-500"
+              />
+              <input
+                type="tel"
+                placeholder="Phone (WhatsApp)"
+                value={leadForm.phone}
+                onChange={(e) => setLeadForm((f) => ({ ...f, phone: e.target.value }))}
+                required
+                className="w-full px-3 py-2.5 rounded-lg bg-slate-900 border border-slate-700 text-white placeholder-slate-500"
+              />
+              <textarea
+                placeholder="Optional message"
+                value={leadForm.message}
+                onChange={(e) => setLeadForm((f) => ({ ...f, message: e.target.value }))}
+                rows={3}
+                className="w-full px-3 py-2.5 rounded-lg bg-slate-900 border border-slate-700 text-white placeholder-slate-500 resize-none"
+              />
+              <button
+                type="submit"
+                disabled={leadSubmitting}
+                className="w-full mt-2 inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-accent-blue text-white text-sm font-medium hover:bg-accent-blue/90 disabled:opacity-60"
+              >
+                {leadSubmitting ? "Sending…" : "Send inquiry"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       <StickyCTABar
         visible={stickyVisible}

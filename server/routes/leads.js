@@ -199,7 +199,22 @@ leadsRouter.post("/widget", publicLeadLimiter, async (req, res) => {
 // Public: submit lead from landing page (no auth)
 leadsRouter.post("/", publicLeadLimiter, async (req, res) => {
   try {
-    const { carId, name, phone, email, budget, financing, timeframe, tradeIn, source, captchaToken, refCode, buyerRef } = req.body;
+    const {
+      carId,
+      name,
+      phone,
+      email,
+      budget,
+      financing,
+      timeframe,
+      tradeIn,
+      source,
+      captchaToken,
+      refCode,
+      buyerRef,
+      message,
+      notes,
+    } = req.body;
 
     const captchaOk = await verifyCaptchaToken(captchaToken, req.ip);
     if (!captchaOk) {
@@ -240,6 +255,7 @@ leadsRouter.post("/", publicLeadLimiter, async (req, res) => {
         timeframe: timeframe || null,
         tradeIn: tradeIn || null,
         source: source || null,
+        notes: notes || message || null,
         status: "NEW",
       },
       include: { car: { select: { make: true, model: true, year: true } } },
