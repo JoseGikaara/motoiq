@@ -41,8 +41,25 @@ if (process.env.SENTRY_DSN) {
 }
 
 // --- Core middleware ---
-const clientOrigin = process.env.CLIENT_URL || "http://localhost:5173";
-app.use(cors({ origin: clientOrigin, credentials: true }));
+const allowedOrigins = [
+  "https://motoiq.vercel.app",
+  "https://motoiq-git-main-joseph-gikaaras-projects.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:3000",
+];
+if (process.env.CLIENT_URL && !allowedOrigins.includes(process.env.CLIENT_URL)) {
+  allowedOrigins.push(process.env.CLIENT_URL);
+}
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(null, false);
+    },
+    credentials: true,
+  })
+);
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -74,6 +91,11 @@ app.use((req, res, next) => {
     return res.redirect(301, `https://${host}${req.url}`);
   }
   next();
+});
+
+// Simple health check
+app.get("/", (req, res) => {
+  res.json({ status: "MotoIQ API is running" });
 });
 
 // --- Routes ---

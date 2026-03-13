@@ -165,6 +165,12 @@ async function parseJsonResponse(r, fallbackError) {
   try {
     return JSON.parse(text);
   } catch {
+    // If the backend returned HTML or plain text (e.g. Render cold start or error page),
+    // show a softer message rather than spamming a scary configuration warning.
+    const looksLikeHtml = text.trim().startsWith("<");
+    if (looksLikeHtml) {
+      throw new Error("The server is starting up or returned an HTML error page. Please wait a few seconds and try again.");
+    }
     throw new Error(`Server returned invalid response. Check that the API is running and VITE_API_URL points to the backend (${API || "not set"}).`);
   }
 }
