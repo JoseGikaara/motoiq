@@ -4,21 +4,37 @@ import prisma from "../lib/prisma.js";
 
 export const demoRouter = Router();
 
-// POST /api/demo/setup — ensure demo dealer exists (seed script should be run once in deployments)
+/**
+ * POST /api/demo/setup
+ * Requires: DATABASE_URL, DIRECT_URL (Prisma), JWT_SECRET.
+ * Demo dealer must exist — run `npm run seed:demo` in server/ first.
+ */
 demoRouter.post("/setup", async (req, res) => {
   const email = "demo@motoriq.co.ke";
   const isDev = process.env.NODE_ENV !== "production";
 
   try {
-    let dealer = await prisma.dealer.findUnique({ where: { email } });
+    // Step 1: Find demo dealer (must exist — run npm run seed:demo in server/ first)
+    let dealer;
+    try {
+      dealer = await prisma.dealer.findUnique({ where: { email } });
+    } catch (dbError) {
+      console.error("Demo setup error: prisma.dealer.findUnique failed", dbError);
+      return res.status(500).json({
+        error: "Demo setup failed",
+        detail: isDev ? (dbError?.message || String(dbError)) : undefined,
+      });
+    }
+
     if (!dealer) {
+      console.error("Demo setup error: Demo dealer not found. Run `npm run seed:demo` in the server directory.");
       return res.status(500).json({
         error: "Demo dealer not found",
         detail: isDev ? "Run `npm run seed:demo` in the server directory to create the demo account." : undefined,
       });
     }
 
-    // Ensure onboarding + website flags are correct even if seed was older
+    // Step 2: Ensure onboarding + website flags (optional update)
     const oneYearFromNow = (() => {
       const d = new Date();
       d.setFullYear(d.getFullYear() + 1);
@@ -26,18 +42,27 @@ demoRouter.post("/setup", async (req, res) => {
     })();
 
     if (!dealer.onboardingComplete || !dealer.websiteActive || !dealer.websiteSlug) {
-      dealer = await prisma.dealer.update({
-        where: { id: dealer.id },
-        data: {
-          onboardingComplete: true,
-          websiteActive: true,
-          websiteSlug: dealer.websiteSlug || "demo-showroom",
-          websiteExpiresAt: dealer.websiteExpiresAt || oneYearFromNow,
-        },
-      });
+      try {
+        dealer = await prisma.dealer.update({
+          where: { id: dealer.id },
+          data: {
+            onboardingComplete: true,
+            websiteActive: true,
+            websiteSlug: dealer.websiteSlug || "demo-showroom",
+            websiteExpiresAt: dealer.websiteExpiresAt || oneYearFromNow,
+          },
+        });
+      } catch (dbError) {
+        console.error("Demo setup error: prisma.dealer.update failed", dbError);
+        return res.status(500).json({
+          error: "Demo setup failed",
+          detail: isDev ? (dbError?.message || String(dbError)) : undefined,
+        });
+      }
     }
 
     if (!process.env.JWT_SECRET) {
+      console.error("Demo setup error: JWT_SECRET is not set in environment.");
       return res.status(500).json({
         error: "Demo setup failed",
         detail: isDev ? "JWT_SECRET is not set in server .env" : undefined,
@@ -58,7 +83,8 @@ demoRouter.post("/setup", async (req, res) => {
       token,
     });
   } catch (e) {
-    console.error("Demo setup error:", e);
+    console.error("Demo setup error:", e?.message, e);
+    if (e?.stack) console.error("Demo setup stack:", e.stack);
     res.status(500).json({
       error: "Demo setup failed",
       ...(isDev && e?.message && { detail: e.message }),
