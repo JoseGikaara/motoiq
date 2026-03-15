@@ -26,4 +26,4 @@ router.get("/slug/:slug", async (req, res) => {
   }
 });
 
-export default router;
+export { router as dealersRouter };
