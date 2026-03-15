@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { Calculator, Percent, Banknote, Tag } from "lucide-react";
 import { publicSite } from "../../api";
+import ConnectingToServer from "../../components/website/ConnectingToServer";
 
 const defaultOffers = [
   { name: "Bank loan (typical)", ratePct: 14, termMonths: 48, minDepositPct: 20 },
@@ -54,7 +55,7 @@ export default function WebsiteFinancing() {
   }, [slug]);
 
   if (loading && !dealer) {
-    return <div className="min-h-screen flex items-center justify-center bg-navy text-gray-400">Loading…</div>;
+    return <ConnectingToServer />;
   }
   if (!dealer) {
     return <div className="min-h-screen flex items-center justify-center bg-navy text-gray-400">Dealer website not found.</div>;

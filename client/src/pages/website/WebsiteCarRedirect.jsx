@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Navigate } from "react-router-dom";
 import { publicSite } from "../../api";
 import { carSlugFromCar } from "../../utils/urlUtils";
+import ConnectingToServer from "../../components/website/ConnectingToServer";
 
 /**
  * When user hits old URL /s/:slug/car/:carId, fetch car and redirect to SEO URL.
@@ -35,6 +36,6 @@ export default function WebsiteCarRedirect() {
     return () => { cancelled = true; };
   }, [slug, carId]);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-navy text-gray-400">Redirecting…</div>;
+  if (loading) return <ConnectingToServer message="Redirecting…" />;
   return <Navigate to={target || `/s/${slug}/inventory`} replace />;
 }

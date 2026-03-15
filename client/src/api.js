@@ -1,5 +1,9 @@
 const API = import.meta.env.VITE_API_URL || "";
 
+/** Shown when API is empty at build time (e.g. VITE_API_URL not set in Vercel). */
+export const VITE_API_URL_NOT_SET_MSG =
+  "VITE_API_URL is not set. Add it in Vercel → Settings → Environment Variables (e.g. https://motoiq.onrender.com) and redeploy.";
+
 function getToken() {
   return localStorage.getItem("motoriq_token");
 }
@@ -156,6 +160,8 @@ export const showroom = {
   get: (dealerId) => api(`/api/showroom/${dealerId}`),
 };
 
+const COLD_START_MSG = "The server is starting up or returned an HTML error page. Please wait a few seconds and try again.";
+
 /** Parse JSON from fetch response; on empty/invalid body throw a clear error */
 async function parseJsonResponse(r, fallbackError) {
   const text = await r.text();
@@ -169,50 +175,103 @@ async function parseJsonResponse(r, fallbackError) {
     // show a softer message rather than spamming a scary configuration warning.
     const looksLikeHtml = text.trim().startsWith("<");
     if (looksLikeHtml) {
-      throw new Error("The server is starting up or returned an HTML error page. Please wait a few seconds and try again.");
+      // When API base is empty, requests went to same origin (e.g. Vercel) and got HTML — env not set at build time.
+      if (!API) {
+        throw new Error(VITE_API_URL_NOT_SET_MSG);
+      }
+      throw new Error(COLD_START_MSG);
     }
     throw new Error(`Server returned invalid response. Check that the API is running and VITE_API_URL points to the backend (${API || "not set"}).`);
   }
 }
 
-/** Public dealer website (no auth) */
+function isHtmlColdStartError(e) {
+  return e?.message?.includes("The server is starting up or returned an HTML error page");
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+const RETRY_MAX = 6;
+const RETRY_DELAY_MS = 5000;
+
+/** Retry a request when the server returns HTML (cold start). Up to 6 attempts, 5s apart. */
+async function fetchWithRetry(fn) {
+  let lastError;
+  for (let attempt = 0; attempt < RETRY_MAX; attempt++) {
+    try {
+      return await fn();
+    } catch (e) {
+      lastError = e;
+      if (!isHtmlColdStartError(e) || attempt === RETRY_MAX - 1) throw e;
+      await sleep(RETRY_DELAY_MS);
+    }
+  }
+  throw lastError;
+}
+
+/** Public dealer website (no auth). Uses retry on HTML/cold start (up to 6× every 5s). */
 export const publicSite = {
   getBySlug: (slug) =>
-    fetch(`${API}/api/public/site/by-slug/${encodeURIComponent(slug)}`).then(async (r) => {
-      const d = await parseJsonResponse(r, "Site not found");
-      return r.ok ? d : Promise.reject(new Error(d.error || "Site not found"));
-    }),
+    !API
+      ? Promise.reject(new Error(VITE_API_URL_NOT_SET_MSG))
+      : fetchWithRetry(() =>
+      fetch(`${API}/api/public/site/by-slug/${encodeURIComponent(slug)}`).then(async (r) => {
+        const d = await parseJsonResponse(r, "Site not found");
+        return r.ok ? d : Promise.reject(new Error(d.error || "Site not found"));
+      })
+    ),
   getByHost: (host) =>
-    fetch(`${API}/api/public/site/by-host?host=${encodeURIComponent(host)}`).then(async (r) => {
-      const d = await parseJsonResponse(r, "Site not found");
-      return r.ok ? d : Promise.reject(new Error(d.error || "Site not found"));
-    }),
+    !API
+      ? Promise.reject(new Error(VITE_API_URL_NOT_SET_MSG))
+      : fetchWithRetry(() =>
+      fetch(`${API}/api/public/site/by-host?host=${encodeURIComponent(host)}`).then(async (r) => {
+        const d = await parseJsonResponse(r, "Site not found");
+        return r.ok ? d : Promise.reject(new Error(d.error || "Site not found"));
+      })
+    ),
   getCars: (slug, params = {}) => {
+    if (!API) return Promise.reject(new Error(VITE_API_URL_NOT_SET_MSG));
     const q = new URLSearchParams(params).toString();
-    return fetch(`${API}/api/public/site/${encodeURIComponent(slug)}/cars${q ? `?${q}` : ""}`).then(async (r) => {
-      const d = await parseJsonResponse(r, "Failed");
-      return r.ok ? d : Promise.reject(new Error(d.error || "Failed"));
-    });
+    return fetchWithRetry(() =>
+      fetch(`${API}/api/public/site/${encodeURIComponent(slug)}/cars${q ? `?${q}` : ""}`).then(async (r) => {
+        const d = await parseJsonResponse(r, "Failed");
+        return r.ok ? d : Promise.reject(new Error(d.error || "Failed"));
+      })
+    );
   },
   getCar: (slug, carId) =>
-    fetch(`${API}/api/public/site/${encodeURIComponent(slug)}/cars/${encodeURIComponent(carId)}`).then(async (r) => {
-      const d = await parseJsonResponse(r, "Car not found");
-      return r.ok ? d : Promise.reject(new Error(d.error || "Car not found"));
-    }),
+    !API
+      ? Promise.reject(new Error(VITE_API_URL_NOT_SET_MSG))
+      : fetchWithRetry(() =>
+      fetch(`${API}/api/public/site/${encodeURIComponent(slug)}/cars/${encodeURIComponent(carId)}`).then(async (r) => {
+        const d = await parseJsonResponse(r, "Car not found");
+        return r.ok ? d : Promise.reject(new Error(d.error || "Car not found"));
+      })
+    ),
   getBanners: (slug) =>
-    fetch(`${API}/api/public/site/${encodeURIComponent(slug)}/banners`).then(async (r) => {
-      const d = await parseJsonResponse(r, "Failed");
-      return r.ok ? d : Promise.reject(new Error(d.error || "Failed to fetch banners"));
-    }),
+    !API
+      ? Promise.reject(new Error(VITE_API_URL_NOT_SET_MSG))
+      : fetchWithRetry(() =>
+      fetch(`${API}/api/public/site/${encodeURIComponent(slug)}/banners`).then(async (r) => {
+        const d = await parseJsonResponse(r, "Failed");
+        return r.ok ? d : Promise.reject(new Error(d.error || "Failed to fetch banners"));
+      })
+    ),
   submitTradeIn: (slug, body) =>
-    fetch(`${API}/api/public/site/${encodeURIComponent(slug)}/trade-in`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    }).then(async (r) => {
-      const d = await parseJsonResponse(r, "Failed to submit");
-      return r.ok ? d : Promise.reject(new Error(d.error || "Failed to submit trade-in"));
-    }),
+    !API
+      ? Promise.reject(new Error(VITE_API_URL_NOT_SET_MSG))
+      : fetchWithRetry(() =>
+      fetch(`${API}/api/public/site/${encodeURIComponent(slug)}/trade-in`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      }).then(async (r) => {
+        const d = await parseJsonResponse(r, "Failed to submit");
+        return r.ok ? d : Promise.reject(new Error(d.error || "Failed to submit trade-in"));
+      })
+    ),
 };
 
 export const testDrives = {

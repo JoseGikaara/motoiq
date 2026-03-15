@@ -16,6 +16,7 @@ import { useWebsiteFavorites } from "../../context/WebsiteFavoritesContext";
 import { useWebsiteRecentlyViewed } from "../../context/WebsiteRecentlyViewedContext";
 import { parseCarIdFromSlug, carSlugFromCar } from "../../utils/urlUtils";
 import DealerNavbar from "../../components/website/DealerNavbar";
+import ConnectingToServer from "../../components/website/ConnectingToServer";
 
 const BUDGET_OPTS = ["Under 500K", "500K - 1M", "1M - 2M", "2M - 3M", "3M+"];
 const TIMEFRAME_OPTS = ["This week", "This month", "In 2-3 months", "Just browsing"];
@@ -234,7 +235,7 @@ export default function WebsiteCar() {
     return <div className="min-h-screen flex items-center justify-center bg-navy text-gray-400">Invalid car link.</div>;
   }
   if (loading || !car || !dealer) {
-    return <div className="min-h-screen flex items-center justify-center bg-navy text-gray-400">Loading…</div>;
+    return <ConnectingToServer />;
   }
 
   const carDetailPath = `/s/${resolvedSlug || slug}/inventory/${carSlugFromCar(car)}`;

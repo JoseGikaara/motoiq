@@ -10,6 +10,7 @@ import { carSlugFromCar } from "../../utils/urlUtils";
 import { useWebsiteFavorites } from "../../context/WebsiteFavoritesContext";
 import QuickViewModal from "../../components/website/inventory/QuickViewModal";
 import DealerNavbar from "../../components/website/DealerNavbar";
+import ConnectingToServer from "../../components/website/ConnectingToServer";
 
 function dealerWhatsappNumber(phone) {
   if (!phone) return "";
@@ -217,7 +218,7 @@ export default function WebsiteInventory() {
   const whatsapp = waNumber ? `https://wa.me/${waNumber}?text=${encodeURIComponent("Hi, I'm interested in one of your cars.")}` : null;
 
   if (loading && !dealer) {
-    return <div className="min-h-screen flex items-center justify-center bg-navy text-gray-400">Loading…</div>;
+    return <ConnectingToServer />;
   }
   if (!dealer) {
     return <div className="min-h-screen flex items-center justify-center bg-navy text-gray-400">Dealer website not found.</div>;

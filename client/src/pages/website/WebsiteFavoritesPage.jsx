@@ -7,6 +7,7 @@ import { useWebsiteFavorites } from "../../context/WebsiteFavoritesContext";
 import { carSlugFromCar } from "../../utils/urlUtils";
 import WebsiteConsentBanner from "../../components/WebsiteConsentBanner";
 import DealerNavbar from "../../components/website/DealerNavbar";
+import ConnectingToServer from "../../components/website/ConnectingToServer";
 
 function dealerWhatsappNumber(phone) {
   if (!phone) return "";
@@ -55,7 +56,7 @@ export default function WebsiteFavoritesPage() {
   const primaryColor = dealer?.primaryColor || "#2563EB";
 
   if (loading && !dealer) {
-    return <div className="min-h-screen flex items-center justify-center bg-navy text-gray-400">Loading…</div>;
+    return <ConnectingToServer />;
   }
   if (!dealer) {
     return <div className="min-h-screen flex items-center justify-center bg-navy text-gray-400">Dealer website not found.</div>;
