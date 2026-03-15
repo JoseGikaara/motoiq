@@ -251,6 +251,10 @@ if (process.env.SENTRY_DSN) {
   app.use(Sentry.Handlers.errorHandler());
 }
 
-startTasksCron();
+try {
+  startTasksCron();
+} catch (error) {
+  console.error("Cron task error:", error.message);
+}
 
 app.listen(PORT, () => console.log(`MotorIQ server running on http://localhost:${PORT}`));

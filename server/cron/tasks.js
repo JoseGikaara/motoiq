@@ -5,20 +5,21 @@ import { notifyWebsiteExpiry } from "../utils/notify.js";
 import * as Sentry from "@sentry/node";
 
 export function startTasksCron() {
-  // Lead response timer: every 5 min — create HIGH priority task if lead still NEW after 30 min
-  cron.schedule("*/5 * * * *", async () => {
-    const thirtyMinAgo = new Date();
-    thirtyMinAgo.setMinutes(thirtyMinAgo.getMinutes() - 30);
-    try {
-      const newLeads = await prisma.lead.findMany({
-        where: {
-          status: "NEW",
-          createdAt: { lt: thirtyMinAgo },
-          tasks: { none: {} },
-        },
-        include: { dealer: true, car: true },
-      });
-      for (const lead of newLeads) {
+  try {
+    // Lead response timer: every 5 min — create HIGH priority task if lead still NEW after 30 min
+    cron.schedule("*/5 * * * *", async () => {
+      const thirtyMinAgo = new Date();
+      thirtyMinAgo.setMinutes(thirtyMinAgo.getMinutes() - 30);
+      try {
+        const newLeads = await prisma.lead.findMany({
+          where: {
+            status: "NEW",
+            createdAt: { lt: thirtyMinAgo },
+            tasks: { none: {} },
+          },
+          include: { dealer: true, car: true },
+        });
+        for (const lead of newLeads) {
         await prisma.task.create({
           data: {
             dealerId: lead.dealerId,
@@ -28,11 +29,11 @@ export function startTasksCron() {
             done: false,
           },
         }).catch(() => {});
+        }
+      } catch (e) {
+        console.error("Lead response timer cron error:", e);
       }
-    } catch (e) {
-      console.error("Lead response timer cron error:", e);
-    }
-  });
+    });
 
   // Stale lead tasks: daily 8am Nairobi
   cron.schedule("0 8 * * *", async () => {
@@ -131,4 +132,7 @@ export function startTasksCron() {
       }
     }
   });
+  } catch (error) {
+    console.error("Cron task error:", error.message);
+  }
 }

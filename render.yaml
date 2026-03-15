@@ -1,0 +1,19 @@
+# Render Blueprint: backend only (frontend is on Vercel)
+# Docs: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: motoiq-api
+    runtime: node
+    rootDir: server
+    buildCommand: npm install && npx prisma generate
+    startCommand: node index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        generateValue: true
+      # Add these in Render Dashboard → Environment:
+      # DATABASE_URL    (Postgres connection string, e.g. Supabase pooler URL)
+      # DIRECT_URL      (Direct Postgres URL for migrations; Supabase: use direct connection URL)
+      # JWT_SECRET      (random secret for auth)
+      # CLIENT_URL      (e.g. https://motoiq.vercel.app)
