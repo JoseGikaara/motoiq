@@ -4,7 +4,6 @@ import { BrowserRouter } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import * as Sentry from "@sentry/react";
 import { ThemeProvider } from "./context/ThemeContext";
-import ApiHealthGate from "./components/ApiHealthGate";
 import App from "./App";
 import "./styles/tokens.css";
 import "./styles/globals.css";
@@ -28,20 +27,18 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         </div>
       }
     >
-      <ApiHealthGate>
-        <ThemeProvider>
-          <BrowserRouter>
-            <App />
-            <Toaster
-              position="top-right"
-              toastOptions={{
-                duration: 3000,
-                style: { background: "var(--bg-elevated)", color: "var(--text-primary)" },
-              }}
-            />
-          </BrowserRouter>
-        </ThemeProvider>
-      </ApiHealthGate>
+      <ThemeProvider>
+        <BrowserRouter>
+          <App />
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 3000,
+              style: { background: "var(--bg-elevated)", color: "var(--text-primary)" },
+            }}
+          />
+        </BrowserRouter>
+      </ThemeProvider>
     </Sentry.ErrorBoundary>
   </React.StrictMode>
 );
