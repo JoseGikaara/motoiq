@@ -12,7 +12,6 @@ import DealerMetaTags from "../../components/website/seo/DealerMetaTags";
 import StructuredData from "../../components/website/seo/StructuredData";
 import { carSlugFromCar } from "../../utils/urlUtils";
 import DealerNavbar from "../../components/website/DealerNavbar";
-import ConnectingToServer from "../../components/website/ConnectingToServer";
 
 const BUDGET_OPTS = ["Under 500K", "500K - 1M", "1M - 2M", "2M - 3M", "3M+"];
 
@@ -101,40 +100,17 @@ export default function WebsiteHome() {
   const whatsapp = waNumber ? `https://wa.me/${waNumber}?text=${encodeURIComponent("Hi, I'm interested in your cars.")}` : null;
 
   if (loading) {
-    return <ConnectingToServer />;
+    return <div className="min-h-screen flex items-center justify-center bg-navy text-gray-400">Loading…</div>;
   }
   if (!dealer) {
-    const err = (loadError || "").toLowerCase();
-    const isServerError = err.includes("failed to fetch");
-    const isEnvNotSet = loadError?.includes("VITE_API_URL is not set");
-    // Any server/HTML/connection error: show one message + Refresh, never the custom-domain hint
-    const isServerOrHtmlError =
-      isServerError ||
-      err.includes("the server is starting up") ||
-      err.includes("html error page") ||
-      err.includes("starting up") ||
-      err.includes("server returned invalid") ||
-      err.includes("invalid response");
-    const hint = isEnvNotSet
-      ? "In Vercel, go to Settings → Environment Variables, add VITE_API_URL (e.g. https://motoiq.onrender.com), then redeploy."
-      : isServerOrHtmlError
-        ? "Wait a moment, then click Refresh. If it keeps failing, set VITE_API_URL in Vercel to your Render URL and redeploy."
-        : slug === "host"
-          ? "This URL is for your custom domain or subdomain. On localhost or for testing, use /s/your-website-slug (e.g. /s/my-dealership) instead."
-          : "Check the URL, or if this is your site: turn on your public website in Settings and use the slug shown there.";
+    const hint =
+      slug === "host"
+        ? "This URL is for your custom domain or subdomain. On localhost or for testing, use /s/your-website-slug (e.g. /s/my-dealership) instead."
+        : "Check the URL, or if this is your site: turn on your public website in Settings and use the slug shown there.";
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-navy text-gray-400 px-4 text-center">
         <p className="font-medium text-white/90">{loadError || "Dealer website not found."}</p>
         <p className="mt-2 text-sm max-w-md">{hint}</p>
-        {(isServerOrHtmlError || isEnvNotSet) && (
-          <button
-            type="button"
-            onClick={() => window.location.reload()}
-            className="mt-4 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition-colors"
-          >
-            Refresh page
-          </button>
-        )}
       </div>
     );
   }

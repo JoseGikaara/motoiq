@@ -4,7 +4,6 @@ import toast from "react-hot-toast";
 import { MapPin, PhoneCall, Mail } from "lucide-react";
 import { publicSite } from "../../api";
 import DealerNavbar from "../../components/website/DealerNavbar";
-import ConnectingToServer from "../../components/website/ConnectingToServer";
 
 function dealerWhatsappNumber(phone) {
   if (!phone) return "";
@@ -45,7 +44,7 @@ export default function WebsiteAbout() {
   }, [slug]);
 
   if (loading && !dealer) {
-    return <ConnectingToServer />;
+    return <div className="min-h-screen flex items-center justify-center bg-navy text-gray-400">Loading…</div>;
   }
   if (!dealer) {
     return <div className="min-h-screen flex items-center justify-center bg-navy text-gray-400">Dealer website not found.</div>;
