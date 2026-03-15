@@ -1,5 +1,15 @@
 const API = import.meta.env.VITE_API_URL || "";
 
+/** Normalize API base (in case env was set like "VITE_API_URL = https://..." with spaces). */
+function getApiBase() {
+  const raw = API || "";
+  if (raw.includes("=")) {
+    const part = raw.split("=").map((s) => s.trim()).pop();
+    return part && part.startsWith("http") ? part.replace(/\/$/, "") : raw.replace(/\/$/, "");
+  }
+  return raw.replace(/\/$/, "");
+}
+
 function getToken() {
   return localStorage.getItem("motoriq_token");
 }
@@ -11,7 +21,8 @@ export async function api(path, options = {}) {
     ...(token && { Authorization: `Bearer ${token}` }),
     ...options.headers,
   };
-  const res = await fetch(`${API}${path}`, { ...options, headers });
+  const base = getApiBase();
+  const res = await fetch(`${base}${path}`, { ...options, headers });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || res.statusText);
   return data;
@@ -19,7 +30,16 @@ export async function api(path, options = {}) {
 
 export const auth = {
   login: (body) => api("/api/auth/login", { method: "POST", body: JSON.stringify(body) }),
-  demoSetup: () => api("/api/demo/setup", { method: "POST" }),
+  demoSetup: async () => {
+    const API_URL = getApiBase();
+    const res = await fetch(`${API_URL}/api/demo/setup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || res.statusText || "Demo setup failed");
+    return data;
+  },
 };
 
 export const cars = {
