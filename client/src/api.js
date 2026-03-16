@@ -231,7 +231,7 @@ export const tasks = {
   markDone: (id) => api(`/api/tasks/${id}/done`, { method: "PATCH" }),
 };
 
-const API_BASE = getApiBase();
+const API = getApiBase();
 
 export const onboarding = {
   // Legacy placeholder to avoid breaking imports; public onboarding flow has been replaced by admin-managed onboarding.
