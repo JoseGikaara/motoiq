@@ -2,8 +2,6 @@ import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { onboarding } from "../api";
 
-const API = import.meta.env.VITE_API_URL || "";
-
 export default function ApplyStatus() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();

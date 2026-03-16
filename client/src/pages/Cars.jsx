@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { cars as carsApi } from "../api";
+import { getApiBase } from "../config/apiBase";
 import AddCarModal from "../components/AddCarModal";
 import PhotoManager from "../components/dashboard/cars/PhotoManager";
 import FacebookPostsModal from "../components/FacebookPostsModal";
@@ -39,7 +40,7 @@ export default function Cars() {
     }
   }
 
-  const apiBase = (import.meta.env.VITE_API_URL || window.location.origin).replace(/\/$/, "");
+  const apiBase = (getApiBase() || window.location.origin).replace(/\/$/, "");
 
   function copyLink(id, src) {
     const base = `${window.location.origin}/car/${id}`;

@@ -5,6 +5,7 @@ import { cars } from "../api";
 import { leads as leadsApi } from "../api";
 import { testDrives } from "../api";
 import CarSpecsTable from "../components/CarSpecsTable";
+import { getApiBase } from "../config/apiBase";
 
 const BUDGET_OPTS = ["Under 500K", "500K - 1M", "1M - 2M", "2M - 3M", "3M+"];
 const TIMEFRAME_OPTS = ["This week", "This month", "In 2-3 months", "Just browsing"];
@@ -128,7 +129,7 @@ export default function CarLanding() {
   const whatsappUrl = dealerPhone ? `https://wa.me/${dealerPhone}?text=${encodeURIComponent(whatsappMessage)}` : null;
   const primaryColor = car.dealer?.primaryColor || "#2563EB";
 
-  const shareBase = (import.meta.env.VITE_API_URL || window.location.origin).replace(/\/$/, "");
+  const shareBase = (getApiBase() || window.location.origin).replace(/\/$/, "");
   const shareCarLink = `${shareBase}/go/car/${car.id}`;
   const [buyerRefCode] = useState(() => {
     const key = `motoriq_buyer_ref_${car.id}`;

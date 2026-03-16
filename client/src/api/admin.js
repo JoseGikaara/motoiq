@@ -1,4 +1,6 @@
-const API = import.meta.env.VITE_API_URL || "";
+import { getApiBase } from "../config/apiBase";
+
+const API = getApiBase();
 
 const ADMIN_TOKEN_KEY = "motoriq_admin_token";
 

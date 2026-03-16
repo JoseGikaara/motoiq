@@ -1,14 +1,4 @@
-const API = import.meta.env.VITE_API_URL || "";
-
-/** Normalize API base (in case env was set like "VITE_API_URL = https://..." with spaces). */
-function getApiBase() {
-  const raw = API || "";
-  if (raw.includes("=")) {
-    const part = raw.split("=").map((s) => s.trim()).pop();
-    return part && part.startsWith("http") ? part.replace(/\/$/, "") : raw.replace(/\/$/, "");
-  }
-  return raw.replace(/\/$/, "");
-}
+import { getApiBase } from "./config/apiBase";
 
 function getToken() {
   return localStorage.getItem("motoriq_token");
@@ -60,7 +50,7 @@ export const cars = {
   deletePhoto: (carId, photoId) => api(`/api/cars/${carId}/photos/${photoId}`, { method: "DELETE" }),
   getFacebookReplies: (carId) => api(`/api/cars/${carId}/facebook-replies`),
   bulkUpload: async (file) => {
-    const API = import.meta.env.VITE_API_URL || "";
+    const API = getApiBase();
     const token = localStorage.getItem("motoriq_token");
     const formData = new FormData();
     formData.append("file", file);
@@ -76,7 +66,7 @@ export const cars = {
 };
 
 export async function uploadCarImage(file) {
-  const API = import.meta.env.VITE_API_URL || "";
+  const API = getApiBase();
   const token = localStorage.getItem("motoriq_token");
   const formData = new FormData();
   formData.append("image", file);
@@ -91,7 +81,7 @@ export async function uploadCarImage(file) {
 }
 
 export async function uploadCarVideo(file) {
-  const API = import.meta.env.VITE_API_URL || "";
+  const API = getApiBase();
   const token = localStorage.getItem("motoriq_token");
   const formData = new FormData();
   formData.append("video", file);
@@ -241,7 +231,7 @@ export const tasks = {
   markDone: (id) => api(`/api/tasks/${id}/done`, { method: "PATCH" }),
 };
 
-const API_BASE = import.meta.env.VITE_API_URL || "";
+const API_BASE = getApiBase();
 
 export const onboarding = {
   // Legacy placeholder to avoid breaking imports; public onboarding flow has been replaced by admin-managed onboarding.
@@ -326,7 +316,7 @@ export const publicAffiliate = {
 
 export async function downloadMonthlyReport(month) {
   const token = localStorage.getItem("motoriq_token");
-  const API = import.meta.env.VITE_API_URL || "";
+  const API = getApiBase();
   const res = await fetch(`${API}/api/reports/monthly?month=${month}`, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
@@ -343,7 +333,7 @@ export async function downloadMonthlyReport(month) {
 /** Download analytics leads as CSV. Pass month "YYYY-MM" or null for all time. */
 export async function downloadAnalyticsCsv(month) {
   const token = localStorage.getItem("motoriq_token");
-  const API = import.meta.env.VITE_API_URL || "";
+  const API = getApiBase();
   const qs = month ? `?month=${encodeURIComponent(month)}` : "";
   const res = await fetch(`${API}/api/reports/analytics-csv${qs}`, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
