@@ -1,4 +1,8 @@
 import "dotenv/config";
+// For seeding, prefer DIRECT_URL (non-pooler) to avoid prepared statement issues on Supabase.
+if (process.env.DIRECT_URL) {
+  process.env.DATABASE_URL = process.env.DIRECT_URL;
+}
 import bcrypt from "bcryptjs";
 import prisma from "../../lib/prisma.js";
 
@@ -291,7 +295,7 @@ async function seedDemoDealer() {
         phone: "0712000001",
         referralCode: "DEMO01",
         trackingUrl: "",
-        status: "active",
+        status: "ACTIVE",
         payoutRate: 0.05,
         totalEarned: 0,
       },
@@ -304,7 +308,7 @@ async function seedDemoDealer() {
         phone: "0712000002",
         referralCode: "DEMO02",
         trackingUrl: "",
-        status: "active",
+        status: "ACTIVE",
         payoutRate: 0.04,
         totalEarned: 0,
       },
