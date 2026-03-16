@@ -43,4 +43,16 @@ ReactDOM.createRoot(document.getElementById("root")).render(
   </React.StrictMode>
 );
 
-// Service worker registration removed to avoid caching API responses.
+// Proactively unregister any existing service workers so they don't cache API calls.
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker
+    .getRegistrations()
+    .then((registrations) => {
+      for (const registration of registrations) {
+        registration.unregister();
+      }
+    })
+    .catch(() => {
+      // ignore errors
+    });
+}
