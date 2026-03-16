@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import * as Sentry from "@sentry/node";
+import fetch from "node-fetch";
 import { authRouter } from "./routes/auth.js";
 import { carsRouter } from "./routes/cars.js";
 import { leadsRouter } from "./routes/leads.js";
@@ -258,3 +259,10 @@ try {
 }
 
 app.listen(PORT, () => console.log(`MotorIQ server running on http://localhost:${PORT}`));
+
+// Keep Render alive on free tier
+setInterval(() => {
+  fetch("https://motoiq.onrender.com/api/health")
+    .then(() => console.log("Keep-alive ping sent"))
+    .catch((e) => console.log("Keep-alive ping failed:", e.message));
+}, 840000);
