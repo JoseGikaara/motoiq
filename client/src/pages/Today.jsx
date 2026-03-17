@@ -72,9 +72,11 @@ export default function Today() {
 
   return (
     <div className="space-y-5">
-      <div>
+      <div className="space-y-1">
         <h1 className="font-heading font-bold text-2xl text-white">Today</h1>
-        <p className="text-gray-400 mt-0.5">Your focused agenda for closing more deals today</p>
+        <p className="text-gray-400 mt-0.5 text-sm">
+          Your focused agenda for closing more deals today
+        </p>
       </div>
 
       {!hasAny && (
@@ -92,6 +94,7 @@ export default function Today() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Main columns stack on mobile; cards are touch-friendly */}
         <div className="space-y-4 lg:col-span-2">
           <SectionCard
             title="Overdue follow-ups"
