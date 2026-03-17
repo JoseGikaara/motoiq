@@ -63,8 +63,11 @@ publicSiteRouter.get("/by-slug/:slug", async (req, res) => {
     if (!dealer) return res.status(404).json({ error: "Dealer website not found or inactive" });
     res.json(dealer);
   } catch (e) {
-    console.error("Public site by-slug error:", e);
-    const msg = process.env.NODE_ENV !== "production" && e?.message ? e.message : "Failed to fetch site";
+    console.error("Public site by-slug error:", e?.message, e?.stack || e);
+    const msg =
+      process.env.NODE_ENV !== "production" && e?.message
+        ? e.message
+        : "Failed to fetch site";
     res.status(500).json({ error: msg });
   }
 });
