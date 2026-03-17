@@ -188,6 +188,114 @@ async function seedDemoDealer() {
         specs: baseSpecs({ engine: "2.0L Petrol", highlight: "Spacious 7-seater SUV" }),
         description: "The Nissan X-Trail in White Pearl offers space and versatility for growing families. With flexible seating for up to seven and a practical 2.0L petrol engine, it handles school runs and weekend getaways with ease.\n\nThis 2018 model has 65,000 km and is in great condition. Spacious boot, comfortable cabin, and strong build quality make the X-Trail a dependable choice for Kenyan families.",
       },
+      {
+        make: "Toyota",
+        model: "Land Cruiser V8",
+        year: 2018,
+        price: 8500000,
+        mileage: 52000,
+        color: "Black",
+        photos: [
+          "https://images.unsplash.com/photo-1541443131874-74fd88ab6f79?w=1200&auto=format&fit=crop",
+          "https://images.unsplash.com/photo-1519581059870-4ac2a7c7f3fd?w=1200&auto=format&fit=crop",
+        ],
+        specs: baseSpecs({
+          engine: "4.5L V8 Turbo Diesel",
+          highlight: "Flagship SUV popular with Kenyan executives and government fleets",
+        }),
+        description:
+          "The Toyota Land Cruiser V8 remains the benchmark for luxury and durability on Kenyan roads. This 2018 black example with 52,000 km is ideal for executives, government use, and long-distance travel across East Africa. With its powerful V8 engine and renowned build quality, it is equally at home in Westlands traffic or on rough upcountry roads.",
+      },
+      {
+        make: "Toyota",
+        model: "Premio",
+        year: 2015,
+        price: 1450000,
+        mileage: 88000,
+        color: "Champagne Gold",
+        photos: [
+          "https://images.unsplash.com/photo-1549920194-4a2153c29a9a?w=1200&auto=format&fit=crop",
+          "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=1200&auto=format&fit=crop",
+        ],
+        specs: baseSpecs({
+          engine: "1.5L Petrol",
+          highlight: "Beloved Kenyan family sedan with excellent fuel economy",
+        }),
+        description:
+          "The Toyota Premio is a favourite among Kenyan families and professionals thanks to its comfort, fuel efficiency and strong resale value. This 2015 Champagne Gold unit with 88,000 km offers a refined ride, spacious interior and low running costs — perfect for daily commutes within Nairobi and weekend trips out of town.",
+      },
+      {
+        make: "Mazda",
+        model: "Demio",
+        year: 2017,
+        price: 850000,
+        mileage: 64000,
+        color: "Deep Crystal Blue",
+        photos: [
+          "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?w=1200&auto=format&fit=crop",
+          "https://images.unsplash.com/photo-1511391037251-9f6254c19c32?w=1200&auto=format&fit=crop",
+        ],
+        specs: baseSpecs({
+          engine: "1.3L Petrol",
+          highlight: "Popular hatchback for first-time car owners in Nairobi",
+        }),
+        description:
+          "The Mazda Demio is a stylish and efficient hatchback that has become very popular among young professionals and first-time buyers in Nairobi. This 2017 example in Deep Crystal Blue with 64,000 km combines SkyActiv engine technology with a modern interior and excellent fuel consumption — ideal for daily CBD and Westlands commutes.",
+      },
+      {
+        make: "Toyota",
+        model: "Fielder",
+        year: 2014,
+        price: 980000,
+        mileage: 110000,
+        color: "White",
+        photos: [
+          "https://images.unsplash.com/photo-1541447271487-09612b3f49af?w=1200&auto=format&fit=crop",
+          "https://images.unsplash.com/photo-1603386828222-4e322cddb5c2?w=1200&auto=format&fit=crop",
+        ],
+        specs: baseSpecs({
+          engine: "1.5L Hybrid",
+          highlight: "Spacious estate car popular with Uber/Bolt drivers and families",
+        }),
+        description:
+          "The Toyota Fielder hybrid is a workhorse on Kenyan roads, especially for ride-hailing drivers and small families. This 2014 white unit with 110,000 km offers generous boot space, legendary Toyota reliability and very low fuel consumption — ideal for long days on Nairobi roads.",
+      },
+      {
+        make: "Honda",
+        model: "Fit",
+        year: 2015,
+        price: 750000,
+        mileage: 102000,
+        color: "Blue",
+        photos: [
+          "https://images.unsplash.com/photo-1542281286-9e0a16bb7366?w=1200&auto=format&fit=crop",
+          "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?w=1200&auto=format&fit=crop",
+        ],
+        specs: baseSpecs({
+          engine: "1.3L Hybrid",
+          highlight: "Compact hatchback with excellent fuel economy for city use",
+        }),
+        description:
+          "The Honda Fit hybrid is a compact yet surprisingly spacious hatchback that suits Kenyan city life perfectly. This 2015 blue unit with 102,000 km offers nimble handling, a configurable rear seat layout and hybrid fuel savings — a great choice for everyday errands and CBD driving.",
+      },
+      {
+        make: "Mitsubishi",
+        model: "Outlander",
+        year: 2017,
+        price: 2450000,
+        mileage: 73000,
+        color: "Grey",
+        photos: [
+          "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=1200&auto=format&fit=crop",
+          "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1200&auto=format&fit=crop",
+        ],
+        specs: baseSpecs({
+          engine: "2.0L Petrol",
+          highlight: "7-seater crossover ideal for Kenyan families",
+        }),
+        description:
+          "The Mitsubishi Outlander is a practical 7-seater crossover that handles both Nairobi potholes and out-of-town trips with ease. This 2017 grey example with 73,000 km offers flexible seating, decent ground clearance and a comfortable ride — perfect for growing families who need extra room without jumping to a full-size SUV.",
+      },
     ];
 
     const cars = await Promise.all(
@@ -214,9 +322,48 @@ async function seedDemoDealer() {
       "Lucy Akinyi",
       "David Otieno",
       "Sarah Njeri",
+      "Brian Mwangi",
+      "Esther Atieno",
+      "Kevin Njoroge",
+      "Patricia Wairimu",
+      "John Otieno",
+      "Naomi Chebet",
+      "Felix Kiptoo",
     ];
-    const demoStatuses = ["NEW", "NEW", "CONTACTED", "TEST_DRIVE", "NEGOTIATION", "CLOSED", "CLOSED", "LOST"];
-    const demoScores = ["hot", "warm", "cold", "hot", "warm", "hot", "hot", "cold"];
+    const demoStatuses = [
+      "NEW",
+      "NEW",
+      "CONTACTED",
+      "TEST_DRIVE",
+      "NEGOTIATION",
+      "CLOSED",
+      "CLOSED",
+      "LOST",
+      "NEW",
+      "CONTACTED",
+      "TEST_DRIVE",
+      "NEGOTIATION",
+      "CLOSED",
+      "LOST",
+      "NEW",
+    ];
+    const demoScores = [
+      "hot",
+      "warm",
+      "cold",
+      "hot",
+      "warm",
+      "hot",
+      "hot",
+      "cold",
+      "warm",
+      "hot",
+      "warm",
+      "hot",
+      "hot",
+      "cold",
+      "warm",
+    ];
 
     for (let i = 0; i < demoNames.length; i++) {
       const lead = await prisma.lead.create({
@@ -287,30 +434,35 @@ async function seedDemoDealer() {
     });
 
     // Seed a couple of demo affiliates and attach some leads/events so the affiliate panel looks alive
-    const affiliateA = await prisma.affiliate.create({
-      data: {
+    // Demo affiliates for analytics/affiliate dashboard
+    const affiliateA = await prisma.affiliate.upsert({
+      where: { referralCode: "DEMO01" },
+      update: {},
+      create: {
         dealerId: dealer.id,
-        name: "Social Media Marketer",
+        name: "James Kariuki",
         email: "affiliate1@demo.motoriq.co.ke",
         phone: "0712000001",
         referralCode: "DEMO01",
         trackingUrl: "",
         status: "ACTIVE",
         payoutRate: 0.05,
-        totalEarned: 0,
+        totalEarned: 24000,
       },
     });
-    const affiliateB = await prisma.affiliate.create({
-      data: {
+    const affiliateB = await prisma.affiliate.upsert({
+      where: { referralCode: "DEMO02" },
+      update: {},
+      create: {
         dealerId: dealer.id,
-        name: "Car Broker Network",
+        name: "Sarah Wanjiku",
         email: "affiliate2@demo.motoriq.co.ke",
         phone: "0712000002",
         referralCode: "DEMO02",
         trackingUrl: "",
         status: "ACTIVE",
         payoutRate: 0.04,
-        totalEarned: 0,
+        totalEarned: 16000,
       },
     });
 
